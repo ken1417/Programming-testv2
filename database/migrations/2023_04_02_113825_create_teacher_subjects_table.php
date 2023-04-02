@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('teacher', function (Blueprint $table) {
+        Schema::create('teacher_subjects', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('teacher_id');
-            $table->text('fullName')->default('');
-            $table->date("dateHired")->nullable();
-            $table->timestamp("updated_at")->nullable();
-            $table->timestamp("created_at")->nullable();
+            $table->timestamps();
         });
     }
 
@@ -26,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('teacher');
+        Schema::dropIfExists('teacher_subjects');
     }
 };

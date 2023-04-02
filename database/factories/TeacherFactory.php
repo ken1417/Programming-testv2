@@ -23,9 +23,8 @@ class TeacherFactory extends Factory
     public function definition()
     {
         return [
-          'fullName' => $this->faker->name(),
-          'major' => $this->faker->randomElement(["Science","Mathematics","English","MAPEH","Computer","Chemistry","Economics","Araling Panlipunan","Music"]),
-          'dateHired' => $this->faker->date('Y-m-d'),
+          'full_name' => $this->faker->name(),
+          'date_hired' => $this->faker->date('Y-m-d'),
         ];
     }
 }
