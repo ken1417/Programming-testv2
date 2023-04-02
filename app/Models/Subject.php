@@ -4,24 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Subject;
+use App\Models\Teacher;
 
-class Teacher extends Model
+class Subject extends Model
 {
     use HasFactory;
-    public $table="teacher";
-    protected $fillable = [
-      'full_name',
-      'date_hired',
-    ];
-    protected $hidden = [
-      'laravel_through_key',
-    ];
+    public $timestamps = false;
+    public $table="subject";
 
+    protected $fillable=[
+      'major',
+    ];
     public function subject()
     {
       return $this->hasManyThrough(
-        '\App\Models\Subject',
+        '\App\Models\Teacher',
         '\App\Models\TeacherSubject',
         'teacher_id',
         'id',
@@ -29,5 +26,4 @@ class Teacher extends Model
         'subject_id'
       );
     }
-
 }

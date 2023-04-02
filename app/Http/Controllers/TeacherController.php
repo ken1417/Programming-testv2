@@ -2,121 +2,78 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\TeachersFilter;
+use App\Filters\SubjectsFilter;
+use App\Http\Controllers\ResponseController;
+use App\Http\Requests\StoreTeacherRequest;
+use App\Http\Requests\UpdateTeacherRequest;
+use App\Traits\HttpResponses;
 use Illuminate\Http\Request;
 use App\Models\Teacher;
-class TeacherController extends Controller
+use App\Models\Subject;
+use App\Models\User;
+use App\Http\Resources\TeacherResource;
+use App\Http\Resources\SubjectResource;
+use App\Http\Resources\TeacherCollection;
+use App\Http\Resources\SubjectCollection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+
+class TeacherController extends ResponseController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-      $teachers = Teacher::all();
-      return response()->json([
-        'status'=> true,
-        'message'=>"Teacher's data has been retrieved!",
-        'data'=>$teachers,
-      ]);
-      //return view ('teachers.index')->with('teacher', $teachers);
+      $filter = new TeachersFilter();
+      $teachers = Teacher::with($filter->transform($request));
+      return new TeacherCollection($teachers->paginate(10)->appends($request->query()));
+      //return TeacherResource::collection(Teacher::all());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('teachers.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {      
-      $input = $request->all();
-      $teachers = Teacher::create($input);
-
-      //return redirect('teachers')->with('flash_message', "Teacher's Data has been Added!");
-      return response()->json([
-        'status'=> true,
-        'message'=>"Teacher's data has been added!",
-        'data'=>$teachers,
-      ],201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Request $request, string $id)
+    public function store(StoreTeacherRequest $request, Teacher $teacher)
     {
-      $teachers = Teacher::find($id);
-      //return view('teachers.show')->with('teachers', $teacher);
-      return response()->json([
-        'status'=> true,
-        'message'=>"Teacher's data has been found.",
-        'data'=>$teachers,
-      ]);
+      $request->validated($request->all());
+      $teacher = new Teacher();
+      $teacher->fill($request->except(['major']));
+      $teacher->save();
+      return $this->sendResponse(new TeacherResource($teacher), 'Data successfully processed.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function show(Teacher $teacher)
+    {
+      return new TeacherResource($teacher);
+      //return $teacher->subject;
+    }
+
     public function edit(string $id)
     {
-      $teachers = Teacher::find($id);
-      //return view('teachers.edit')->with('teachers', $teachers);
-      return response()->json([
-        'status'=> true,
-        'message'=>"Teacher's data has been edited.",
-        'data'=>$teachers,
+      //
+    }
+
+    public function update(UpdateTeacherRequest $request, Teacher $teacher)
+    {
+      if (is_null($teacher)) {
+        return $this->sendError('Validation Error');
+      }
+      $teacher->update([
+        'full_name'=>$request->input('full_name'),
+        'date_hired'=>$request->input('date_hired'),
       ]);
+
+      return $this->sendResponse(
+        new TeacherResource($teacher),
+        'Data successfully processed.'
+      );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Teacher $teacher)
     {
-      $teachers = Teacher::find($id);
-      $input = $request->all();
-      $teachers->update($input);
-      //return redirect('teachers')->with('flash_message', "Teacher's Data has been Updated!");
-      if($teachers)
-      {
-        return response()->json([
-          'status'=> true,
-          'message'=>"Teacher's data has been updated!",
-          'data'=>$teachers,
-        ]);
-      } else {
-        return response()->json([
-          'status'=> false,
-          'message'=>"Teacher's data not found",
-          'data'=>null,
-        ],404);
-      }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Request $request, string $id)
-    {
-      $teachers = Teacher::destroy($id);
-      //return redirect('teachers')->with('flash_message', "Teacher's Data has been Deleted!");
-      if($teachers)
-      {
-        return response()->json([
-          'status'=> true,
-          'message'=>"Teacher's data has been deleted!",
-          'data'=>$teachers,
-        ]);
-      } else {
-        return response()->json([
-          'status'=> false,
-          'message'=>"Teacher's data not found",
-          'data'=>null,
-        ]);
-      }
+      $teacher->delete();
+      return $this->sendResponse([], 'Data successfully deleted.');
     }
 }
